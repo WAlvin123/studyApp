@@ -1,25 +1,25 @@
-import { useEffect, useState } from 'react';
-import * as yup from 'yup'
-import { yupResolver } from '@hookform/resolvers/yup'
 import './App.css';
-import { useForm } from 'react-hook-form';
 import { Navbar } from './components/Navbar';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Home } from './pages/Home';
 import { Matching } from './pages/Matching';
+import { ShortAnswer } from './pages/ShortAnswer';
+import { Testing } from './pages/Testing';
 
 function App() {
 
   return (
     <div className="App">
-      <header>
+      <h1>
         ALVINS STUDY APP
-      </header>
+      </h1>
       <Router>
         <Navbar />
         <Routes>
           <Route path='/' element={<Home />} />
           <Route path='/matching' element={<Matching />} />
+          <Route path='/shortanswer' element={<ShortAnswer/>}/>
+          <Route path='/testing' element={<Testing/>}/>
         </Routes>
       </Router>
     </div>

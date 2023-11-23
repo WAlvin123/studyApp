@@ -3,11 +3,17 @@
 }
 
 .card-container {
-  column-count: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 }
 
 .navbar {
   display: grid;
-  grid-template-columns: 50px 160px 200px 200px; 
+  grid-template-columns: 80px 160px 185px 200px; 
   justify-content:center;
+  background-color: black;
+}
+
+.divider {
+  background-color: black;
 }

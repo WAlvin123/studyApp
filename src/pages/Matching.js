@@ -1,56 +1,65 @@
 import { useState, useEffect } from "react";
-import { useDeckState } from "../components/useDeckState";
+import { useCardsState } from "../components/useCardsState";
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { useForm } from 'react-hook-form';
 
 export const Matching = () => {
 
-  const [deck, setDeck] = useDeckState()
-  const [studyNumber, setStudyNumber] = useState('')
-  const [randomDeck, setRandomDeck] = useState([])
-  const [shuffledDeck, setShuffledDeck] = useState([])
+  const [cards, setCards] = useCardsState()
+  const [randomCards, setRandomCards] = useState([])
+  const [shuffledCards, setShuffledCards] = useState([])
 
 
   useEffect(() => {
-    const storedDeck = localStorage.getItem('deck');
-    if (storedDeck) {
-      setDeck(JSON.parse(storedDeck))
+    const storedCards = localStorage.getItem('cards');
+    if (storedCards) {
+      setCards(JSON.parse(storedCards))
     }
   }, [])
 
-  const handleChange = (event) => {
-    setStudyNumber(event.target.value)
-  }
+  const submissionSchema = yup.object().shape({
+    studyAmount: yup.number().required()
+  })
 
-  const createSmall = (input, array) => { // add functionality: error prompt when entering an input larger than study list
-    const smallerArray = [];
-    const arrayLength = array.length;
+  const { register, handleSubmit } = useForm({
+    resolver: yupResolver(submissionSchema)
+  })
 
-    if (input <= deck.length) {
-      while (smallerArray.length < input) {
-        const randomIndex = Math.floor(Math.random() * arrayLength)
-        if (!smallerArray.includes(array[randomIndex])) {
-          smallerArray.push(array[randomIndex])
-        }
-      }
-      setRandomDeck(smallerArray)
+  const onSubmit = (info) => {
+    const studyAmount = info.studyAmount - 1
+    const smallerArray = []
 
-      const newArray = [...smallerArray]
+     if (studyAmount < cards.length) {
+       while(smallerArray.length <= studyAmount) {
+         const randomIndex = Math.floor(Math.random() * cards.length)
+         if (!smallerArray.includes(cards[randomIndex])) {
+           smallerArray.push(cards[randomIndex])
+         }
+       }
+     }
 
-      let i = newArray.length - 1;
-      for (; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        const temp = newArray[i];
-        newArray[i] = newArray[j];
-        newArray[j] = temp;
-      }
-      setShuffledDeck([...newArray])
-    } else {
-      console.log('invalid')
+
+    setRandomCards(smallerArray)
+
+    const newArray = [...smallerArray]
+
+    let i = newArray.length - 1;
+    for (; i >= 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp = newArray[i];
+      newArray[i] = newArray[j];
+      newArray[j] = temp;
     }
+    setShuffledCards([...newArray])
+
+    console.log(shuffledCards.length)
+    console.log(randomCards.length)
   }
 
   const selectFirst = (id) => {
-    setRandomDeck(
-      randomDeck.map((items) => {
+    setRandomCards(
+      randomCards.map((items) => {
         if (items.id == id) {
           return { ...items, selected1: !items.selected1 }
         } else {
@@ -61,8 +70,8 @@ export const Matching = () => {
   }
 
   const selectSecond = (id) => {
-    setShuffledDeck(
-      shuffledDeck.map((items) => {
+    setShuffledCards(
+      shuffledCards.map((items) => {
         if (items.id == id) {
           return { ...items, selected2: !items.selected2 }
         } else {
@@ -74,29 +83,33 @@ export const Matching = () => {
 
   return (
     <div>
-      <header>Input the amount of cards you would like to study (Less than or equal to the total in the deck)</header>
-      <input onChange={handleChange} />
-
-      <button onClick={() => { createSmall(studyNumber, deck); }}>
-        BEGIN
-      </button>
-
+      <h2>Enter the amount of cards you would like to study below</h2>
+      <header>Guide: Match the front of the card with the back</header>
+      <h2> </h2>
+      <form onSubmit={handleSubmit(onSubmit)}>
+      <input {...register('studyAmount')} placeholder="Enter study session amount..." style={{ width: '200px' }} />
+        <input type='submit' />
+      </form>
       <div class='card-container'>
-        {randomDeck.map((items) => {
-          return (
-            <div class='card'>
-              <button onClick={() => { selectFirst(items.id) }}>{items.front}</button> {items.selected1 && <text>✓</text>}
-            </div>
-          )
-        })}
+        <div>
+          {randomCards.map((items) => {
+            return (
+              <div class='card'>
+                <button onClick={() => { selectFirst(items.id) }}>{items.front}</button> {items.selected1 && <text>✓</text>}
+              </div>
+            )
+          })}
+        </div>
 
-        {shuffledDeck.map((items) => {
-          return (
-            <div class='card'>
-              <button onClick={()=> {selectSecond(items.id)}}>{items.back}</button> {items.selected2 && <text>✓</text>}
-            </div>
-          )
-        })}
+        <div>
+          {shuffledCards.map((items) => {
+            return (
+              <div class='card'>
+                <button onClick={() => { selectSecond(items.id) }}>{items.back}</button> {items.selected2 && <text>✓</text>}
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>)
 }

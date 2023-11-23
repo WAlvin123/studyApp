@@ -3,23 +3,31 @@ import { useCardsState } from "../components/useCardsState"
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form';
+import { useDecksState } from "../components/useDecksState";
 
 export const ShortAnswer = () => {
 
-  const [modalState, setModalState] = useState(1)
+  const [modalState, setModalState] = useState(0)
   const [cards, setCards] = useCardsState()
+  const [decks, setDecks] = useDecksState()
+  const [filteredCards, setFilteredCards] = useState([])
   const [randomCards, setRandomCards] = useState([])
   const [inputValue, setInputValue] = useState('')
-  const [deckChoice, setDeckChoice] = useState('')
+  const [selection, setSelection] = useState('')
 
   useEffect(() => {
     const storedCards = localStorage.getItem('cards');
     if (storedCards) {
       setCards(JSON.parse(storedCards))
     }
+
+    const storedDecks = localStorage.getItem('decks')
+    if (storedDecks) {
+      setDecks(JSON.parse(storedDecks))
+    }
   }, [])
 
-  /*
+
   const onDeckSelect = (choice) => {
     setFilteredCards(cards.filter((items) => {
       if (items.deck == choice) {
@@ -30,8 +38,7 @@ export const ShortAnswer = () => {
     }))
     console.log(filteredCards)
     setModalState(1)
-  } 
-  */
+  }
 
   const submissionSchema = yup.object().shape({
     studyAmount: yup.number().required()
@@ -45,17 +52,16 @@ export const ShortAnswer = () => {
     const randomArray = []
     const studyAmount = info.studyAmount - 1
 
-    if (studyAmount < cards.length) {
+    if (studyAmount < filteredCards.length) {
       while (randomArray.length <= studyAmount) {
-        const randomIndex = Math.floor(Math.random() * cards.length)
-        if (!randomArray.includes(cards[randomIndex])) {
-          randomArray.push(cards[randomIndex])
+        const randomIndex = Math.floor(Math.random() * filteredCards.length)
+        if (!randomArray.includes(filteredCards[randomIndex])) {
+          randomArray.push(filteredCards[randomIndex])
         }
       }
       setModalState(2)
     }
     setRandomCards(randomArray)
-    console.log(cards.length)
   }
 
   const checkAnswer = (submission) => {
@@ -83,7 +89,22 @@ export const ShortAnswer = () => {
   }
 
   return (
-     <div>
+    <div>
+      {modalState == 0 && (
+        <div>
+          <h2>Select the deck you would like to study</h2>
+          <select onChange={(event) => { onDeckSelect(event.target.value) }}>
+          <option>-------</option>
+          <option>Uncategorized</option>
+            {decks.map((deck) => {
+              return (
+                <option>{deck.name}</option>
+              )
+            })}
+          </select>
+        </div>
+      )}
+
       {modalState == 1 && (
         <div>
           <h2>Enter the amount of cards you would like to study below</h2>
