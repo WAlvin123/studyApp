@@ -4,6 +4,8 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form';
 
+// Implement functionality
+
 export const Matching = () => {
 
   const [cards, setCards] = useCardsState()
@@ -30,15 +32,14 @@ export const Matching = () => {
     const studyAmount = info.studyAmount - 1
     const smallerArray = []
 
-     if (studyAmount < cards.length) {
-       while(smallerArray.length <= studyAmount) {
-         const randomIndex = Math.floor(Math.random() * cards.length)
-         if (!smallerArray.includes(cards[randomIndex])) {
-           smallerArray.push(cards[randomIndex])
-         }
-       }
-     }
-
+    if (studyAmount < cards.length) {
+      while (smallerArray.length <= studyAmount) {
+        const randomIndex = Math.floor(Math.random() * cards.length)
+        if (!smallerArray.includes(cards[randomIndex])) {
+          smallerArray.push(cards[randomIndex])
+        }
+      }
+    }
 
     setRandomCards(smallerArray)
 
@@ -87,7 +88,7 @@ export const Matching = () => {
       <header>Guide: Match the front of the card with the back</header>
       <h2> </h2>
       <form onSubmit={handleSubmit(onSubmit)}>
-      <input {...register('studyAmount')} placeholder="Enter study session amount..." style={{ width: '200px' }} />
+        <input {...register('studyAmount')} placeholder="Enter study session amount..." style={{ width: '200px' }} />
         <input type='submit' />
       </form>
       <div class='card-container'>

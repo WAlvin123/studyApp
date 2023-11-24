@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useCardsState } from '../components/useCardsState';
 import { useDecksState } from '../components/useDecksState';
 
+// TODO: When deck is deleted, delete all cards that are included in that deck. 
 
 export const Home = () => {
   const [isCreateDeckVisible, setIsCreateDeckVisible] = useState(false)
@@ -15,7 +16,6 @@ export const Home = () => {
   const [cards, setCards] = useCardsState()
   const [decks, setDecks] = useDecksState()
   const [deckInput, setDeckInput] = useState([])
-  const [deckSelection, setDeckSelection] = useState('')
   const [filteredCards, setFilteredCards] = useState([])
 
   useEffect(() => {
@@ -245,7 +245,7 @@ export const Home = () => {
       <h1></h1>
       <div class='divider'>a</div>
       <h2>Total Cards: {cards.length}</h2>
-      <h2>Total Decks: {decks.length}</h2>
+      <h2>Total Deck Categories: {decks.length}</h2>
     </div>
   )
 }

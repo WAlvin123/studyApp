@@ -5,6 +5,8 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form';
 import { useDecksState } from "../components/useDecksState";
 
+// Improve rendering. (Render step by step?)
+
 export const ShortAnswer = () => {
 
   const [modalState, setModalState] = useState(0)
