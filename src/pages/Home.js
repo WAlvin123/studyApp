@@ -9,11 +9,14 @@ import { useDecksState } from '../components/useDecksState';
 export const Home = () => {
   const [isCreateDeckVisible, setIsCreateDeckVisible] = useState(false)
   const [isRegisterVisible, setIsRegisterVisible] = useState(false)
-  const [isItemsVisible, setIsItemsVisible] = useState(false)
+  const [isDeckOptionsVisible, setIsDeckOptionsVisible] = useState(false)
   const [isViewAllDecksVisible, setIsViewAllDecksVisible] = useState(false)
+  const [isItemsVisible, setIsItemsVisible] = useState(false)
   const [cards, setCards] = useCardsState()
   const [decks, setDecks] = useDecksState()
   const [deckInput, setDeckInput] = useState([])
+  const [deckSelection, setDeckSelection] = useState('')
+  const [filteredCards, setFilteredCards] = useState([])
 
   useEffect(() => {
     const storedCards = localStorage.getItem('cards');
@@ -72,11 +75,17 @@ export const Home = () => {
   // } 
 
   const removeItem = (id) => {
+    setFilteredCards(prevCards => {
+      const updatedCards = prevCards.filter(card => card.id !== id);
+      return updatedCards;
+    });
+
     setCards(prevCards => {
       const updatedCards = prevCards.filter(card => card.id !== id);
       localStorage.setItem('cards', JSON.stringify(updatedCards));
       return updatedCards;
-    });
+    })
+
   };
 
   const removeDeck = (id) => {
@@ -84,6 +93,11 @@ export const Home = () => {
       const updatedDecks = prevDecks.filter(decks => decks.id !== id);
       localStorage.setItem('decks', JSON.stringify(updatedDecks));
       return updatedDecks;
+    });
+
+    setFilteredCards(prevFilteredCards => {
+      const updatedFilteredCards = prevFilteredCards.filter(filteredCards => filteredCards.id !== id);
+      return updatedFilteredCards;
     });
   };
 
@@ -108,14 +122,48 @@ export const Home = () => {
     console.log(decks)
   }
 
+  const onDeckSelect = (choice) => {
+    if (choice == 'View all') {
+      setFilteredCards(cards)
+    } else {
+      setFilteredCards(cards.filter((card) => {
+        if (card.deck == choice) {
+          return true
+        } else {
+          return false
+        }
+      }))
+    }
+  }
+
   return (
     <div>
       <h2>Register new cards you would like to study <br /> and view what you currently have here </h2>
 
-      <button onClick={() => { setIsCreateDeckVisible(!isCreateDeckVisible) }}>CREATE DECK</button>
-      <button onClick={() => { setIsViewAllDecksVisible(!isViewAllDecksVisible) }}>VIEW DECKS</button>
-      <button onClick={() => { setIsRegisterVisible(!isRegisterVisible)}}>REGISTER CARD</button>
-      <button onClick={() => { setIsItemsVisible(!isItemsVisible)}}>DISPLAY ITEMS</button>
+      <button onClick={() => {
+        if (isViewAllDecksVisible == false && isRegisterVisible == false && isDeckOptionsVisible == false) {
+          setIsCreateDeckVisible(!isCreateDeckVisible)
+        }
+      }}>CREATE DECK</button>
+
+      <button onClick={() => {
+        if (isCreateDeckVisible == false && isRegisterVisible == false && isDeckOptionsVisible == false) {
+          setIsViewAllDecksVisible(!isViewAllDecksVisible)
+        }
+      }}>VIEW DECKS</button>
+
+      <button onClick={() => {
+        if (isCreateDeckVisible == false && isViewAllDecksVisible == false && isDeckOptionsVisible == false) {
+          setIsRegisterVisible(!isRegisterVisible)
+        }
+      }}>REGISTER CARD</button>
+
+      <button onClick={() => {
+        if (isCreateDeckVisible == false && isViewAllDecksVisible == false && isRegisterVisible == false) {
+          setIsDeckOptionsVisible(!isDeckOptionsVisible)
+          setIsItemsVisible(false)
+        }
+      }}>DISPLAY ITEMS</button>
 
       {isCreateDeckVisible && (
         <div>
@@ -160,19 +208,40 @@ export const Home = () => {
           </div>
         </div>)}
 
-      {isItemsVisible && (
+      {isDeckOptionsVisible && (
         <div>
-          <h2>Cards</h2>
-          {cards.map((card) => {
-            return (
-              <div>
-                Front: {card.front} | Back: {card.back} | Deck: {card.deck} <button onClick={() => { removeItem(card.id) }}>X</button>
-              </div>
-            )
-          })}
+          <select onChange={(event) => {
+            if (event.target.value !== '---------') {
+              onDeckSelect(event.target.value)
+              setIsItemsVisible(true)
+            } else { setIsItemsVisible(false) }
+          }}>
+            <option>---------</option>
+            <option>View all</option>
+            {decks.map((deck) => {
+              return (
+                <option>{deck.name}</option>
+              )
+            })}
+          </select>
         </div>
       )
       }
+
+      {isItemsVisible && (
+        <div>
+          <div>
+            {filteredCards.map((card) => {
+              return (
+                <div>Front: {card.front} | Back: {card.back} | Deck: {card.deck} <button onClick={() => { removeItem(card.id) }}>X</button></div>
+              )
+            })}
+          </div>
+        </div>
+      )
+
+      }
+
       <h1></h1>
       <div class='divider'>a</div>
       <h2>Total Cards: {cards.length}</h2>

@@ -13,7 +13,6 @@ export const ShortAnswer = () => {
   const [filteredCards, setFilteredCards] = useState([])
   const [randomCards, setRandomCards] = useState([])
   const [inputValue, setInputValue] = useState('')
-  const [selection, setSelection] = useState('')
 
   useEffect(() => {
     const storedCards = localStorage.getItem('cards');
@@ -84,7 +83,7 @@ export const ShortAnswer = () => {
     }
 
     if (randomCards.length == 1) {
-      setModalState(1)
+      setModalState(0)
     }
   }
 
@@ -93,6 +92,8 @@ export const ShortAnswer = () => {
       {modalState == 0 && (
         <div>
           <h2>Select the deck you would like to study</h2>
+          <header>Guide: Enter the correct answer corresponding to the opposite side of the list of cards</header>
+          <h1></h1>
           <select onChange={(event) => { onDeckSelect(event.target.value) }}>
           <option>-------</option>
           <option>Uncategorized</option>
@@ -108,7 +109,6 @@ export const ShortAnswer = () => {
       {modalState == 1 && (
         <div>
           <h2>Enter the amount of cards you would like to study below</h2>
-          <header>Guide: Enter the correct answer corresponding to the opposite side of the list of cards</header>
           <form onSubmit={handleSubmit(onSubmit)}>
             <h2></h2>
             <input {...register('studyAmount')} placeholder="Enter study session amount..." style={{ width: '200px' }} />
@@ -153,7 +153,7 @@ export const ShortAnswer = () => {
             )
           })}
           <button onClick={() => {
-            setModalState(1)
+            setModalState(0)
           }}>FINISH STUDYING</button>
         </div>
       )
