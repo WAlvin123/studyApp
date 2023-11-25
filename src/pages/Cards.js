@@ -8,7 +8,7 @@ import { useDecksState } from '../components/useDecksState';
 // TODO: Add a sorting method when viewing all
 // TODO: Let the same card be added to different decks
 
-export const Home = () => {
+export const Cards = () => {
   const [isRegisterVisible, setIsRegisterVisible] = useState(false)
   const [isDeckOptionsVisible, setIsDeckOptionsVisible] = useState(false)
   const [isItemsVisible, setIsItemsVisible] = useState(false)
