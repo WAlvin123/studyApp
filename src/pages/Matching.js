@@ -3,20 +3,34 @@ import { useCardsState } from "../components/useCardsState";
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form';
+import { useDecksState } from "../components/useDecksState";
 
-// Implement functionality
+// TODO: Make second button not append endlessly
 
 export const Matching = () => {
 
   const [cards, setCards] = useCardsState()
-  const [randomCards, setRandomCards] = useState([])
-  const [shuffledCards, setShuffledCards] = useState([])
-
+  const [decks, setDecks] = useDecksState()
+  const [filteredCards, setFilteredCards] = useState([])
+  const [firstColumn, setFirstColumn] = useState([])
+  const [secondColumn, setSecondColumn] = useState([])
+  const [answerPair, setAnswerPair] = useState([])
+  const [answerMessage, setAnswerMessage] = useState('')
+  const [modalState, setModalState] = useState(0)
+  const [selectedOption, setSelectedOption] = useState('------')
+  const pair = []
 
   useEffect(() => {
     const storedCards = localStorage.getItem('cards');
     if (storedCards) {
       setCards(JSON.parse(storedCards))
+    }
+  }, [])
+
+  useEffect(() => {
+    const storedDecks = localStorage.getItem('decks');
+    if (storedDecks) {
+      setDecks(JSON.parse(storedDecks))
     }
   }, [])
 
@@ -32,16 +46,17 @@ export const Matching = () => {
     const studyAmount = info.studyAmount - 1
     const smallerArray = []
 
-    if (studyAmount < cards.length) {
+    if (studyAmount < filteredCards.length) {
       while (smallerArray.length <= studyAmount) {
-        const randomIndex = Math.floor(Math.random() * cards.length)
-        if (!smallerArray.includes(cards[randomIndex])) {
-          smallerArray.push(cards[randomIndex])
+        const randomIndex = Math.floor(Math.random() * filteredCards.length)
+        if (!smallerArray.includes(filteredCards[randomIndex])) {
+          smallerArray.push(filteredCards[randomIndex])
         }
       }
+      setModalState(2)
     }
 
-    setRandomCards(smallerArray)
+    setFirstColumn(smallerArray)
 
     const newArray = [...smallerArray]
 
@@ -52,27 +67,27 @@ export const Matching = () => {
       newArray[i] = newArray[j];
       newArray[j] = temp;
     }
-    setShuffledCards([...newArray])
+    setSecondColumn([...newArray])
+  }
 
-    console.log(shuffledCards.length)
-    console.log(randomCards.length)
+  const onDeckSelect = (deck) => {
+    setFilteredCards(cards.filter((cards) => cards.deck === deck))
   }
 
   const selectFirst = (id) => {
-    setRandomCards(
-      randomCards.map((items) => {
+    setFirstColumn(
+      firstColumn.map((items) => {
         if (items.id == id) {
           return { ...items, selected1: !items.selected1 }
         } else {
           return items
         }
-      })
-    )
+      }))
   }
 
   const selectSecond = (id) => {
-    setShuffledCards(
-      shuffledCards.map((items) => {
+    setSecondColumn(
+      secondColumn.map((items) => {
         if (items.id == id) {
           return { ...items, selected2: !items.selected2 }
         } else {
@@ -84,33 +99,76 @@ export const Matching = () => {
 
   return (
     <div>
-      <h2>Enter the amount of cards you would like to study below</h2>
-      <header>Guide: Match the front of the card with the back</header>
-      <h2> </h2>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <input {...register('studyAmount')} placeholder="Enter study session amount..." style={{ width: '200px' }} />
-        <input type='submit' />
-      </form>
-      <div class='card-container'>
+      {modalState == 0 && (
         <div>
-          {randomCards.map((items) => {
-            return (
-              <div class='card'>
-                <button onClick={() => { selectFirst(items.id) }}>{items.front}</button> {items.selected1 && <text>✓</text>}
-              </div>
-            )
-          })}
+          <h2>Select the deck you would like to study</h2>
+          <header>Guide: Match the front of the card with the back</header>
+          <h2></h2>
+          <select onChange={(event) => {
+            onDeckSelect(event.target.value)
+            setSelectedOption(event.target.value)
+          }}>
+            <option>------</option>
+            <option>Uncategorized</option>
+            {decks.map((deck) => { return <option>{deck.name}</option> })}
+          </select>
+          <button onClick={() => {
+            if (selectedOption !== '------') {
+              setModalState(1)
+            }
+          }}>Confirm</button>
         </div>
+      )
 
+      }
+
+      {modalState == 1 && (
         <div>
-          {shuffledCards.map((items) => {
-            return (
-              <div class='card'>
-                <button onClick={() => { selectSecond(items.id) }}>{items.back}</button> {items.selected2 && <text>✓</text>}
-              </div>
-            )
-          })}
+          <h2>Enter the amount of cards you would like to study below</h2>
+          <h2> </h2>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <input {...register('studyAmount')} placeholder="Enter study session amount..." style={{ width: '200px' }} />
+            <input type='submit' />
+          </form>
+        </div>)
+      }
+
+      {modalState == 2 && (
+        <div>
+          <div class='card-container'>
+            <div>
+              {firstColumn.map((items) => {
+                return (
+                  <div class='card'>
+                    <button onClick={() => {
+                      selectFirst(items.id)
+                    }}>{items.front}</button> {items.selected1 && <text>✓</text>}
+                  </div>
+                )
+              })}
+            </div>
+
+            {firstColumn.length > 0 && (<h2>{answerMessage}</h2>)}
+
+            <div>
+              {secondColumn.map((items) => {
+                return (
+                  <div class='card'>
+                    <button onClick={() => {
+                      selectSecond(items.id)
+                    }}>{items.back}</button> {items.selected2 && <text>✓</text>}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+          {firstColumn.length == 0 && (<button onClick={() => {
+            setModalState(0)
+            setAnswerMessage('')
+          }}>Return</button>)}
         </div>
-      </div>
-    </div>)
+      )
+      }
+    </div>
+  )
 }

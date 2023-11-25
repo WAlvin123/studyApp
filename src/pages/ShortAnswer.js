@@ -5,7 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm } from 'react-hook-form';
 import { useDecksState } from "../components/useDecksState";
 
-// Improve rendering. (Render step by step?)
+// TODO: Improve rendering. (Render step by step?)
 
 export const ShortAnswer = () => {
 
@@ -15,6 +15,8 @@ export const ShortAnswer = () => {
   const [filteredCards, setFilteredCards] = useState([])
   const [randomCards, setRandomCards] = useState([])
   const [inputValue, setInputValue] = useState('')
+  const [selectedOption, setSelectedOption] = useState('-------')
+  const [showAnswer, setShowAnswer] = useState(false)
 
   useEffect(() => {
     const storedCards = localStorage.getItem('cards');
@@ -28,17 +30,9 @@ export const ShortAnswer = () => {
     }
   }, [])
 
-
+  // Step 1: Filter cards
   const onDeckSelect = (choice) => {
-    setFilteredCards(cards.filter((items) => {
-      if (items.deck == choice) {
-        return true
-      } else {
-        return false
-      }
-    }))
-    console.log(filteredCards)
-    setModalState(1)
+    setFilteredCards(cards.filter((items) => items.deck == choice))
   }
 
   const submissionSchema = yup.object().shape({
@@ -49,6 +43,7 @@ export const ShortAnswer = () => {
     resolver: yupResolver(submissionSchema)
   })
 
+  // Step 2: Make a random deck out of the filtered cards
   const onSubmit = (info) => {
     const randomArray = []
     const studyAmount = info.studyAmount - 1
@@ -69,6 +64,7 @@ export const ShortAnswer = () => {
     if (modalState == 3) {
       setRandomCards(randomCards.filter((items) => {
         if (submission == items.front) {
+          setShowAnswer(false)
           return false
         } else {
           return true
@@ -77,15 +73,12 @@ export const ShortAnswer = () => {
     } else {
       setRandomCards(randomCards.filter((items) => {
         if (submission == items.back) {
+          setShowAnswer(false)
           return false
         } else {
           return true
         }
       }))
-    }
-
-    if (randomCards.length == 1) {
-      setModalState(0)
     }
   }
 
@@ -96,15 +89,23 @@ export const ShortAnswer = () => {
           <h2>Select the deck you would like to study</h2>
           <header>Guide: Enter the correct answer corresponding to the opposite side of the list of cards</header>
           <h1></h1>
-          <select onChange={(event) => { onDeckSelect(event.target.value) }}>
-          <option>-------</option>
-          <option>Uncategorized</option>
+          <select onChange={(event) => {
+            onDeckSelect(event.target.value)
+            setSelectedOption(event.target.value)
+          }}>
+            <option>-------</option>
+            <option>Uncategorized</option>
             {decks.map((deck) => {
               return (
                 <option>{deck.name}</option>
               )
             })}
           </select>
+          <button onClick={() => {
+            if (selectedOption !== '-------') {
+              setModalState(1)
+            }
+          }}>Confirm</button>
         </div>
       )}
 
@@ -131,29 +132,38 @@ export const ShortAnswer = () => {
 
       {modalState == 3 && (
         <div>
-          <h2> </h2>
-          <input placeholder="Enter answer..." value={inputValue} onChange={(event) => { setInputValue(event.target.value) }} />
-          <button onClick={() => { checkAnswer(inputValue) }}>SUBMIT</button>
-          {randomCards.map((items) => {
-            return (
-              <h2>{items.back}</h2>
-            )
-          })}
-          <button onClick={() => { setModalState(1) }}>FINISH STUDYING</button>
+          {randomCards.length > 0 && (<div>
+            <h2> </h2>
+            <input placeholder="Enter answer..." value={inputValue} onChange={(event) => { setInputValue(event.target.value) }} />
+            <button onClick={() => { checkAnswer(inputValue) }}>SUBMIT</button>
+            <div>
+              <h2>{randomCards[0].back} <button onClick={() => { setShowAnswer(!showAnswer) }}>Show answer
+              </button></h2>
+              {showAnswer && <h2>{randomCards[0].front}</h2>}
+            </div>
+            <h2>Cards remaining: {randomCards.length} </h2>
+          </div>)}
+          {randomCards.length == 0 && (<button onClick={() => { setModalState(1) }}>Return</button>)}
         </div>
       )
       }
 
       {modalState == 4 && (
         <div>
-          <h2> </h2>
-          <input placeholder="Enter answer..." value={inputValue} onChange={(event) => { setInputValue(event.target.value) }} />
-          <button onClick={() => { checkAnswer(inputValue) }}>SUBMIT</button>
-          {randomCards.map((items) => {
-            return (
-              <h2>{items.front}</h2>
-            )
-          })}
+          <div>
+            {randomCards.length > 0 && (<div>
+              <h2> </h2>
+              <input placeholder="Enter answer..." value={inputValue} onChange={(event) => { setInputValue(event.target.value) }} />
+              <button onClick={() => { checkAnswer(inputValue) }}>SUBMIT</button>
+              <div>
+                <h2>{randomCards[0].front} <button onClick={() => { setShowAnswer(!showAnswer) }}>Show answer
+                </button></h2>
+                {showAnswer && <h2>{randomCards[0].back}</h2>}
+              </div>
+              <h2>{randomCards.length} cards left</h2>
+            </div>)}
+          </div>
+
           <button onClick={() => {
             setModalState(0)
           }}>FINISH STUDYING</button>
