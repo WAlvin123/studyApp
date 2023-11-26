@@ -14,11 +14,11 @@ export const Matching = () => {
   const [filteredCards, setFilteredCards] = useState([])
   const [firstColumn, setFirstColumn] = useState([])
   const [secondColumn, setSecondColumn] = useState([])
-  const [answerPair, setAnswerPair] = useState([])
-  const [answerMessage, setAnswerMessage] = useState('')
+  const [answerMessage, setAnswerMessage] = useState('Pick a card from the left, and pick a card from the right, and check your answer')
   const [modalState, setModalState] = useState(0)
   const [selectedOption, setSelectedOption] = useState('------')
-  const pair = []
+  const [choiceOne, setChoiceOne] = useState('')
+  const [choiceTwo, setChoiceTwo] = useState('')
 
   useEffect(() => {
     const storedCards = localStorage.getItem('cards');
@@ -56,7 +56,9 @@ export const Matching = () => {
       setModalState(2)
     }
 
-    setFirstColumn(smallerArray)
+    setFirstColumn([...smallerArray].map((item) => {
+      return { ...item, column: 1 }
+    }))
 
     const newArray = [...smallerArray]
 
@@ -67,41 +69,82 @@ export const Matching = () => {
       newArray[i] = newArray[j];
       newArray[j] = temp;
     }
-    setSecondColumn([...newArray])
+    setSecondColumn([...newArray].map((item) => {
+      return { ...item, column: 2 }
+    }))
+    console.log(secondColumn)
   }
 
   const onDeckSelect = (deck) => {
     setFilteredCards(cards.filter((cards) => cards.deck === deck))
   }
 
-  const selectFirst = (id) => {
-    setFirstColumn(
-      firstColumn.map((items) => {
-        if (items.id == id) {
-          return { ...items, selected1: !items.selected1 }
-        } else {
-          return items
-        }
-      }))
+  const handleChoice = (card, column) => {
+    if (choiceOne == '' && choiceTwo == '' && column == 1) { //No choice, column 1 first
+      setChoiceOne(card)
+    } else if (choiceOne == '' && choiceTwo == '' && column == 2) { //No choice, column 2 first
+      setChoiceTwo(card)
+    } else if (choiceOne !== '' && choiceTwo == '' && column == 2) {//Column 1, then column 2
+      setChoiceTwo(card)
+    } else if (choiceOne == '' && choiceTwo !== '' && column == 1) {
+      setChoiceOne(card)
+    } else if (choiceOne !== '' && choiceTwo !== '' && column == 1) {//Both choices filled, reselect C1
+      setChoiceOne(card)
+    } else if (choiceOne !== '' && choiceTwo !== '' && column == 2) {//Both choices filled, reselect C2
+      setChoiceTwo(card)
+    }
   }
 
-  const selectSecond = (id) => {
-    setSecondColumn(
-      secondColumn.map((items) => {
-        if (items.id == id) {
-          return { ...items, selected2: !items.selected2 }
-        } else {
-          return items
-        }
-      })
-    )
+  /* const handleChoice = (card, column) => {
+  switch (column) {
+    case 1:
+      if (choiceOne === '') {
+        setChoiceOne(card);
+      } else if (choiceTwo === '') {
+        setChoiceTwo(card);
+      } else {
+        setChoiceOne(card);
+      }
+      break;
+    case 2:
+      if (choiceTwo === '') {
+        setChoiceTwo(card);
+      } else if (choiceOne === '') {
+        setChoiceOne(card);
+      } else {
+        setChoiceTwo(card);
+      }
+      break;
+    default:
+      break;
+  }
+}; 
+
+GPT provided code for a switch statement to make my above code more precise and readable. Study and understand the purpose of switch statments and breaks, and then implement. 
+*/
+
+  const handleCheckAnswer = () => {
+    if (choiceOne.id == choiceTwo.id && choiceOne !== '' && choiceTwo !== '') {
+      setFirstColumn(firstColumn.filter((item) => item.id !== choiceOne.id))
+      setSecondColumn(secondColumn.filter((item) => item.id !== choiceOne.id))
+      setChoiceOne('')
+      setChoiceTwo('')
+      setAnswerMessage('Correct')
+    } else if (choiceOne == '' && choiceTwo == '') {
+      setAnswerMessage('Select an item')
+    } else if (choiceOne == '' && choiceTwo !== '' || choiceOne !== '' && choiceTwo == '') {
+      setAnswerMessage('Complete your selection')
+    } else {
+      console.log('wrong you fool')
+      setAnswerMessage('Incorrect')
+    }
   }
 
   return (
     <div>
       {modalState == 0 && (
-        <div>
-          <h2>Select the deck you would like to study</h2>
+        <div class='select-deck'>
+          <h2>Select the deck you would like to study from</h2>
           <header>Guide: Match the front of the card with the back</header>
           <h2></h2>
           <select onChange={(event) => {
@@ -123,7 +166,7 @@ export const Matching = () => {
       }
 
       {modalState == 1 && (
-        <div>
+        <div class='input-amount'>
           <h2>Enter the amount of cards you would like to study below</h2>
           <h2> </h2>
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -134,15 +177,16 @@ export const Matching = () => {
       }
 
       {modalState == 2 && (
-        <div>
+        <div class='study-page'>
           <div class='card-container'>
             <div>
               {firstColumn.map((items) => {
                 return (
                   <div class='card'>
                     <button onClick={() => {
-                      selectFirst(items.id)
-                    }}>{items.front}</button> {items.selected1 && <text>✓</text>}
+                      handleChoice(items, items.column)
+                    }}
+                    >{items.front}</button> {items.selected1 && <text>✓</text>}
                   </div>
                 )
               })}
@@ -155,17 +199,27 @@ export const Matching = () => {
                 return (
                   <div class='card'>
                     <button onClick={() => {
-                      selectSecond(items.id)
+                      handleChoice(items, items.column)
                     }}>{items.back}</button> {items.selected2 && <text>✓</text>}
                   </div>
                 )
               })}
             </div>
           </div>
-          {firstColumn.length == 0 && (<button onClick={() => {
-            setModalState(0)
-            setAnswerMessage('')
-          }}>Return</button>)}
+          {firstColumn.length > 0 && (<div class='answer-box'>
+            <h2>{choiceOne.front}</h2>
+            <h2>{choiceTwo.back}</h2>
+            <button onClick={handleCheckAnswer}>Check Answer</button>
+          </div>)}
+          {firstColumn.length == 0 && (
+            <div>
+              <h2>Results</h2>
+              <button onClick={() => {
+                setModalState(0)
+                setAnswerMessage('')
+              }}>Return</button>
+            </div>
+          )}
         </div>
       )
       }

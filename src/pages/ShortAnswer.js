@@ -86,7 +86,7 @@ export const ShortAnswer = () => {
     <div>
       {modalState == 0 && (
         <div>
-          <h2>Select the deck you would like to study</h2>
+          <h2>Select the deck you would like to study from</h2>
           <header>Guide: Enter the correct answer corresponding to the opposite side of the list of cards</header>
           <h1></h1>
           <select onChange={(event) => {

@@ -4,8 +4,8 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { Cards } from './pages/Cards';
 import { Matching } from './pages/Matching';
 import { ShortAnswer } from './pages/ShortAnswer';
-import { Testing } from './pages/Testing';
 import { Deck } from './pages/Deck';
+import { MultipleChoice } from './pages/MultipleChoice';
 
 function App() {
 
@@ -21,7 +21,7 @@ function App() {
           <Route path='/cards' element={<Cards />} />
           <Route path='/matching' element={<Matching />} />
           <Route path='/shortanswer' element={<ShortAnswer/>}/>
-          <Route path='/testing' element={<Testing/>}/>
+          <Route path='/multiplechoice' element={<MultipleChoice/>}/>
         </Routes>
       </Router>
     </div>

@@ -49,8 +49,8 @@ export const Cards = () => {
         back: info.back,
         deck: info.deck,
         id: cards.length == 0 || cards[cards.length - 1].id + 1,
-        selected1: false,
-        selected2: false,
+        column: 0,
+        disabled: false
       }
 
       const updatedCards = [...cards, newCard]
@@ -103,6 +103,7 @@ export const Cards = () => {
       <button onClick={() => {
         if (isRegisterVisible == false) {
           setIsDeckOptionsVisible(!isDeckOptionsVisible)
+          setIsItemsVisible(false)
         }
       }}>View Cards</button>
 
@@ -144,22 +145,22 @@ export const Cards = () => {
               )
             })}
           </select>
+
+          {isItemsVisible && (
+            <div>
+              <div>
+                {filteredCards.map((card) => {
+                  return (
+                    <div>Front: {card.front} | Back: {card.back} | Deck: {card.deck} <button onClick={() => { removeItem(card.id) }}>Remove Card</button></div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+          }
+
         </div>
       )
-      }
-
-      {isItemsVisible && (
-        <div>
-          <div>
-            {filteredCards.map((card) => {
-              return (
-                <div>Front: {card.front} | Back: {card.back} | Deck: {card.deck} <button onClick={() => { removeItem(card.id) }}>Remove Card</button></div>
-              )
-            })}
-          </div>
-        </div>
-      )
-
       }
 
       <h1></h1>
