@@ -204,15 +204,17 @@ export const MultipleChoice = () => {
         </div>
       )}
       {(randomCards.length == 0 && modalState !== 0 && modalState !== 1) && (
-            <div class='results-page'>
-              <h2>You scored {score} / {total}</h2>
-              <button onClick={() => {
-                setModalState(0)
-                setUserInput('')
-                setScore(0)
-              }}>Return</button>
-            </div>
-          )}
+        <div class='results-page'>
+          <h2>You scored {score} / {total}</h2>
+          <button onClick={() => {
+            setModalState(0)
+            setUserInput('')
+            setScore(0)
+          }}>Return</button>
+        </div>
+      )}
+      <h2></h2>
+      <div class='divider'>a</div>
     </div>
   );
 }

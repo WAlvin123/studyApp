@@ -15,11 +15,10 @@ export const Cards = () => {
   const [cards, setCards] = useCardsState()
   const [decks, setDecks] = useDecksState()
   const [filteredCards, setFilteredCards] = useState([])
-  const [formState, setFormState] = useState({
-    front: '',
-    back: '',
-    deck:'------'
-  })
+  const [inputInvalid, setInputInvalid] = useState('')
+  const [frontInput, setfrontInput] = useState('')
+  const [backInput, setBackInput] = useState('')
+  const [deckSelection, setDeckSelection] = useState('Uncategorized')
 
   useEffect(() => {
     const storedCards = localStorage.getItem('cards');
@@ -42,17 +41,19 @@ export const Cards = () => {
     resolver: yupResolver(cardSchema)
   })
 
-  const onSubmit = (info) => { // add functionality checking for duplicates
+  const onSubmit = () => { // add functionality checking for duplicates
 
-    const cardExists = cards.some(card => card.front == info.front && card.back == info.back && info.deck == card.deck)
+    const cardExists = cards.some(card => frontInput == card.front && backInput == card.back && deckSelection == card.deck)
 
     if (cardExists) {
-      console.log("Item already exists")
+      setInputInvalid("Input invalid: Card already exists, or fields are empty")
+    } else if (frontInput == "" || backInput == "") {
+      setInputInvalid("One of the required fields has not been filled out")
     } else {
       const newCard = {
-        front: info.front,
-        back: info.back,
-        deck: info.deck,
+        front: frontInput,
+        back: backInput,
+        deck: deckSelection,
         id: cards.length == 0 || cards[cards.length - 1].id + 1,
         column: 0,
         disabled: false
@@ -62,13 +63,10 @@ export const Cards = () => {
 
       setCards(updatedCards)
       localStorage.setItem('cards', JSON.stringify(updatedCards))
-      setFormState({
-        front: '',
-        back: '',
-        deck: 'Uncategorized'
-      })
+      setInputInvalid('')
+      setfrontInput('')
+      setBackInput('')
     }
-
   }
 
   const removeItem = (id) => {
@@ -96,6 +94,7 @@ export const Cards = () => {
         }
       }))
     }
+
   }
 
   return (
@@ -105,33 +104,33 @@ export const Cards = () => {
       <button onClick={() => {
         setIsRegisterVisible(!isRegisterVisible)
         setIsDeckOptionsVisible(false)
-        setFormState({
-          front: '',
-          back: '',
-          deck: 'Uncategorized'
-        })
+        setfrontInput('')
+        setBackInput('')
+        setDeckSelection('Uncategorized')
       }}>Create Card</button>
 
       <button onClick={() => {
         setIsDeckOptionsVisible(!isDeckOptionsVisible)
         setIsItemsVisible(false)
         setIsRegisterVisible(false)
+        setfrontInput('')
+        setBackInput('')
+        setDeckSelection('Uncategorized')
       }}>View Cards</button>
 
       {isRegisterVisible && (
         <div className='modal'>
           <div>
             <h3>Enter the front and back fields of your Card below</h3>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <input placeholder='Front'{...register('front')} value={formState.front}
-                onChange={
-                  (event) => { setFormState({ ...formState, front: event.target.value }) }
-                } />
-              <input placeholder='Back' {...register('back')} value={formState.back} onChange={
-                (event) => { setFormState({ ...formState, back: event.target.value }) }
-              } />
-              <select id="dropdown" {...register('deck')} value={formState.deck} onChange={
-                (event) => {setFormState({...formState, deck:event.target.value})}
+            <div>
+              <input value={frontInput} onChange={(event) => {
+                setfrontInput(event.target.value)
+              }} />
+              <input value={backInput} onChange={(event) => {
+                setBackInput(event.target.value)
+              }} />
+              <select id="dropdown" onChange={
+                (event) => { setDeckSelection(event.target.value) }
               }>
                 <option>Uncategorized</option>
                 {decks.map((deck) => {
@@ -140,10 +139,10 @@ export const Cards = () => {
                   )
                 })}
               </select>
-              <input type='submit' value='SUBMIT' />
-              <p>{errors.front?.message}</p>
-              <p>{errors.back?.message}</p>
-            </form>
+              <button onClick={onSubmit}>Submit</button>
+            </div>
+            <p>{errors.front?.message}</p>
+            <p>{errors.back?.message}</p>
           </div>
         </div>)}
 
@@ -165,14 +164,22 @@ export const Cards = () => {
           </select>
 
           {isItemsVisible && (
-            <div>
-              <div>
+            <div style={{display: 'flex', justifyContent: 'center', paddingTop:'10px'}}>
+              <table style={{backgroundColor: 'black'}}>
+                <th style={{ width: '200px', color:'white' }}>Front</th>
+                <th style={{ width: '200px', color:'white'  }}>Back</th>
+                <th style={{ width: '200px', color:'white'  }}>Deck</th>
                 {filteredCards.map((card) => {
                   return (
-                    <div>Front: {card.front} | Back: {card.back} | Deck: {card.deck} <button onClick={() => { removeItem(card.id) }}>Remove Card</button></div>
+                    <tr style={{backgroundColor:'white'}}>
+                      <td>{card.front}</td>
+                      <td>{card.back}</td>
+                      <td>{card.deck}</td>
+                      <button onClick={() => {removeItem(card.id)}} style={{ backgroundColor: 'black', color:'white'}}>Remove card</button>
+                    </tr>
                   )
                 })}
-              </div>
+              </table>
             </div>
           )
           }
@@ -182,6 +189,7 @@ export const Cards = () => {
       }
 
       <h1></h1>
+      <h3>{inputInvalid}</h3>
       <div class='divider'>a</div>
       <h2>Total Cards: {cards.length}</h2>
       <h2>Total Deck Categories: {decks.length}</h2>

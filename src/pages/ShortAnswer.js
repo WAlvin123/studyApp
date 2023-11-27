@@ -170,6 +170,8 @@ export const ShortAnswer = () => {
         </div>
       )
       }
+      <h2></h2>
+      <div class='divider'>a</div>
     </div>
   )
 }

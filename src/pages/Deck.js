@@ -89,19 +89,25 @@ export const Deck = () => {
       }
 
       {isViewAllDecksVisible && (
-        <div>
-          <h2>Decks</h2>
+        <div style ={{display: 'flex', justifyContent:"center", paddingTop:'20px'}}>
+        <table style={{backgroundColor:'black'}}>
+          <th style={{width: '150px', backgroundColor:'black', color:'white'}}>Name</th>
+          <th style={{width: '150px', backgroundColor:'black', color:'white'}}> Amount of cards</th>
           {decks.map((deck) => {
             return (
-              <div>
-                {deck.name} | {getDeckAmount(deck.name)} Cards  <button onClick={() => {
-                  removeCardsFromDeck(deck.name)
+              <tr style={{backgroundColor:'white'}}>
+                <td>{deck.name}</td>
+                <td>{getDeckAmount(deck.name)}</td>
+                <button onClick={() => {
                   removeDeck(deck.id)
-                }}>Remove deck</button>
-              </div>
+                  removeCardsFromDeck(deck.name)
+                }} style={{backgroundColor:'black', color:'white'}}>Remove Deck</button>  
+              </tr>
+
             )
           })
           }
+        </table>
         </div>
       )}
       <h1></h1>

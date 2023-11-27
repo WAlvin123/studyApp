@@ -1,11 +1,12 @@
 import './App.css';
 import { Navbar } from './components/Navbar';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router,  BrowserRouter as BRoutes, Routes, Route } from 'react-router-dom';
 import { Cards } from './pages/Cards';
 import { Matching } from './pages/Matching';
 import { ShortAnswer } from './pages/ShortAnswer';
 import { Deck } from './pages/Deck';
 import { MultipleChoice } from './pages/MultipleChoice';
+import { Home } from './pages/Home';
 
 // TODO: Clean up code (props, etc)
 // TODO: firebase storage
@@ -21,6 +22,7 @@ function App() {
       <Router>
         <Navbar />
         <Routes>
+          <Route path='/' element={<Home/>}/>
           <Route path='/decks' element={<Deck/>}/>
           <Route path='/cards' element={<Cards />} />
           <Route path='/matching' element={<Matching />} />

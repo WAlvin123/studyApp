@@ -11,7 +11,7 @@ export const Matching = () => {
   const [filteredCards, setFilteredCards] = useState([])
   const [firstColumn, setFirstColumn] = useState([])
   const [secondColumn, setSecondColumn] = useState([])
-  const [answerMessage, setAnswerMessage] = useState('Pick a card from the left, and pick a card from the right, and check your answer')
+  const [answerMessage, setAnswerMessage] = useState('')
   const [modalState, setModalState] = useState(0)
   const [selectedOption, setSelectedOption] = useState('------')
   const [choiceOne, setChoiceOne] = useState('')
@@ -245,6 +245,8 @@ GPT provided code for a switch statement to make my above code more precise and 
         </div>
       )
       }
+      <h2></h2>
+      <div class='divider'>a</div>
     </div>
   )
 }
