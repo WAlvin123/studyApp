@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
 import { useCardsState } from "../components/useCardsState";
-import * as yup from 'yup'
-import { yupResolver } from '@hookform/resolvers/yup'
-import { useForm } from 'react-hook-form';
 import { useDecksState } from "../components/useDecksState";
 
 // TODO: Make second button not append endlessly
@@ -19,6 +16,11 @@ export const Matching = () => {
   const [selectedOption, setSelectedOption] = useState('------')
   const [choiceOne, setChoiceOne] = useState('')
   const [choiceTwo, setChoiceTwo] = useState('')
+  const [wrong, setWrong] = useState(false)
+  const [score, setScore] = useState(0)
+  const [totalScore, setTotalScore] = useState(0)
+  const [userInput, setUserInput] = useState('')
+  const [studyAmount, setStudyAmount] = useState(0)
 
   useEffect(() => {
     const storedCards = localStorage.getItem('cards');
@@ -34,16 +36,8 @@ export const Matching = () => {
     }
   }, [])
 
-  const submissionSchema = yup.object().shape({
-    studyAmount: yup.number().required()
-  })
-
-  const { register, handleSubmit } = useForm({
-    resolver: yupResolver(submissionSchema)
-  })
-
-  const onSubmit = (info) => {
-    const studyAmount = info.studyAmount - 1
+  const onSubmit = (amount) => {
+    const studyAmount = amount - 1
     const smallerArray = []
 
     if (studyAmount < filteredCards.length) {
@@ -53,6 +47,7 @@ export const Matching = () => {
           smallerArray.push(filteredCards[randomIndex])
         }
       }
+      setScore(0)
       setModalState(2)
     }
 
@@ -72,7 +67,8 @@ export const Matching = () => {
     setSecondColumn([...newArray].map((item) => {
       return { ...item, column: 2 }
     }))
-    console.log(secondColumn)
+
+    setTotalScore(smallerArray.length)
   }
 
   const onDeckSelect = (deck) => {
@@ -85,6 +81,10 @@ export const Matching = () => {
     } else if (choiceOne == '' && choiceTwo == '' && column == 2) { //No choice, column 2 first
       setChoiceTwo(card)
     } else if (choiceOne !== '' && choiceTwo == '' && column == 2) {//Column 1, then column 2
+      setChoiceTwo(card)
+    } else if (choiceOne !== '' && choiceTwo == '' && column == 1) { //Column 1, then Column 1
+      setChoiceOne(card)
+    } else if (choiceOne == '' && choiceTwo !== '' && column == 2) {
       setChoiceTwo(card)
     } else if (choiceOne == '' && choiceTwo !== '' && column == 1) {
       setChoiceOne(card)
@@ -130,16 +130,28 @@ GPT provided code for a switch statement to make my above code more precise and 
       setChoiceOne('')
       setChoiceTwo('')
       setAnswerMessage('Correct')
+      if (wrong == false) {
+        setScore(score + 1)
+      } else {
+        setWrong(false)
+      }
     } else if (choiceOne == '' && choiceTwo == '') {
       setAnswerMessage('Select an item')
     } else if (choiceOne == '' && choiceTwo !== '' || choiceOne !== '' && choiceTwo == '') {
       setAnswerMessage('Complete your selection')
     } else {
-      console.log('wrong you fool')
+      if (wrong == false && score == 0) {
+        setWrong(true)
+      } else if (wrong == false) {
+        setWrong(true)
+      } else if (wrong == true) {
+        setScore(score)
+      }
       setAnswerMessage('Incorrect')
     }
   }
 
+  // RENDERED PAGE BELOW
   return (
     <div>
       {modalState == 0 && (
@@ -158,6 +170,7 @@ GPT provided code for a switch statement to make my above code more precise and 
           <button onClick={() => {
             if (selectedOption !== '------') {
               setModalState(1)
+              setUserInput('')
             }
           }}>Confirm</button>
         </div>
@@ -169,10 +182,13 @@ GPT provided code for a switch statement to make my above code more precise and 
         <div class='input-amount'>
           <h2>Enter the amount of cards you would like to study below</h2>
           <h2> </h2>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <input {...register('studyAmount')} placeholder="Enter study session amount..." style={{ width: '200px' }} />
-            <input type='submit' />
-          </form>
+          <div>
+            <input placeholder="Enter study session amount..." style={{ width: '200px' }} value={userInput} onChange={(event) => {
+              setUserInput(event.target.value)
+              setStudyAmount(event.target.value)
+            }} />
+            <button onClick={() => { onSubmit(studyAmount) }}>Submit</button>
+          </div>
         </div>)
       }
 
@@ -191,9 +207,17 @@ GPT provided code for a switch statement to make my above code more precise and 
                 )
               })}
             </div>
+            <div>
+              {firstColumn.length > 0 && (<h2>{answerMessage}</h2>)}
 
-            {firstColumn.length > 0 && (<h2>{answerMessage}</h2>)}
 
+              {firstColumn.length > 0 && (<div class='answer-box'>
+                <h2>{choiceOne.front}</h2>
+                <h2>{choiceTwo.back}</h2>
+                <h2>Score: {score}</h2>
+                <button onClick={handleCheckAnswer}>Check Answer</button>
+              </div>)}
+            </div>
             <div>
               {secondColumn.map((items) => {
                 return (
@@ -206,14 +230,12 @@ GPT provided code for a switch statement to make my above code more precise and 
               })}
             </div>
           </div>
-          {firstColumn.length > 0 && (<div class='answer-box'>
-            <h2>{choiceOne.front}</h2>
-            <h2>{choiceTwo.back}</h2>
-            <button onClick={handleCheckAnswer}>Check Answer</button>
-          </div>)}
+
+
           {firstColumn.length == 0 && (
             <div>
               <h2>Results</h2>
+              <h2>You scored {score} / {totalScore}</h2>
               <button onClick={() => {
                 setModalState(0)
                 setAnswerMessage('')

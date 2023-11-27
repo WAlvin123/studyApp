@@ -6,6 +6,7 @@ export const Deck = () => {
   const [cards, setCards] = useCardsState()
   const [decks, setDecks] = useDecksState()
   const [deckName, setDeckName] = useState('')
+  const [userInput, setUserInput] = useState('')
   const [isCreateDeckVisible, setIsCreateDeckVisible] = useState(false)
   const [isViewAllDecksVisible, setIsViewAllDecksVisible] = useState(false)
 
@@ -34,6 +35,7 @@ export const Deck = () => {
       const updatedDecks = [...decks, deckObject]
       localStorage.setItem('decks', JSON.stringify(updatedDecks))
       setDecks(updatedDecks)
+      setUserInput('')
     }
   }
 
@@ -63,23 +65,25 @@ export const Deck = () => {
       <h2></h2>
       <h2>Create and view decks here</h2>
       <button onClick={() => {
-        if (isViewAllDecksVisible == false) {
-          setIsCreateDeckVisible(!isCreateDeckVisible)
-          setDeckName('')
-        }
+        setIsCreateDeckVisible(!isCreateDeckVisible)
+        setIsViewAllDecksVisible(false)
       }}>Create Deck</button>
 
       <button onClick={() => {
-        if (isCreateDeckVisible == false ) {
-          setIsViewAllDecksVisible(!isViewAllDecksVisible)
-        }
+        setIsViewAllDecksVisible(!isViewAllDecksVisible)
+        setIsCreateDeckVisible(false)
       }}>View Decks</button>
 
       {isCreateDeckVisible && (
         <div>
           <h3>Enter the name of the deck you want to create below</h3>
-          <input onChange={(event) => { setDeckName(event.target.value) }} />
-          <button onClick={createDeck}>Create</button>
+          <input onChange={(event) => { 
+            setUserInput(event.target.value)
+            setDeckName(event.target.value)
+            }} value={userInput}/>
+          <button onClick={
+            createDeck
+            }>Create</button>
         </div>
       )
       }

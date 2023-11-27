@@ -7,6 +7,10 @@ import { ShortAnswer } from './pages/ShortAnswer';
 import { Deck } from './pages/Deck';
 import { MultipleChoice } from './pages/MultipleChoice';
 
+// TODO: Clean up code (props, etc)
+// TODO: firebase storage
+// TODO: css styling
+
 function App() {
 
   return (

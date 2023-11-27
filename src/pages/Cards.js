@@ -15,6 +15,11 @@ export const Cards = () => {
   const [cards, setCards] = useCardsState()
   const [decks, setDecks] = useDecksState()
   const [filteredCards, setFilteredCards] = useState([])
+  const [formState, setFormState] = useState({
+    front: '',
+    back: '',
+    deck:'------'
+  })
 
   useEffect(() => {
     const storedCards = localStorage.getItem('cards');
@@ -57,10 +62,13 @@ export const Cards = () => {
 
       setCards(updatedCards)
       localStorage.setItem('cards', JSON.stringify(updatedCards))
-      console.log(cards)
+      setFormState({
+        front: '',
+        back: '',
+        deck: 'Uncategorized'
+      })
     }
 
-    console.log(cards)
   }
 
   const removeItem = (id) => {
@@ -95,16 +103,19 @@ export const Cards = () => {
       <h2>Create and view cards here</h2>
 
       <button onClick={() => {
-        if (isDeckOptionsVisible == false) {
-          setIsRegisterVisible(!isRegisterVisible)
-        }
+        setIsRegisterVisible(!isRegisterVisible)
+        setIsDeckOptionsVisible(false)
+        setFormState({
+          front: '',
+          back: '',
+          deck: 'Uncategorized'
+        })
       }}>Create Card</button>
 
       <button onClick={() => {
-        if (isRegisterVisible == false) {
-          setIsDeckOptionsVisible(!isDeckOptionsVisible)
-          setIsItemsVisible(false)
-        }
+        setIsDeckOptionsVisible(!isDeckOptionsVisible)
+        setIsItemsVisible(false)
+        setIsRegisterVisible(false)
       }}>View Cards</button>
 
       {isRegisterVisible && (
@@ -112,9 +123,16 @@ export const Cards = () => {
           <div>
             <h3>Enter the front and back fields of your Card below</h3>
             <form onSubmit={handleSubmit(onSubmit)}>
-              <input placeholder='Front'{...register('front')} />
-              <input placeholder='Back' {...register('back')} />
-              <select id="dropdown" {...register('deck')}>
+              <input placeholder='Front'{...register('front')} value={formState.front}
+                onChange={
+                  (event) => { setFormState({ ...formState, front: event.target.value }) }
+                } />
+              <input placeholder='Back' {...register('back')} value={formState.back} onChange={
+                (event) => { setFormState({ ...formState, back: event.target.value }) }
+              } />
+              <select id="dropdown" {...register('deck')} value={formState.deck} onChange={
+                (event) => {setFormState({...formState, deck:event.target.value})}
+              }>
                 <option>Uncategorized</option>
                 {decks.map((deck) => {
                   return (
