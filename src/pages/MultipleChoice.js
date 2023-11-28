@@ -1,25 +1,25 @@
 import { useDecksState } from "../components/useDecksState";
 import { useCardsState } from "../components/useCardsState";
 import { useState, useEffect } from "react";
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { useForm } from 'react-hook-form';
 
 // TODO: Let the user choose if they want to study front or back (Similar to short answer)
 
 export const MultipleChoice = () => {
-
   const [cards, setCards] = useCardsState()
   const [filteredCards, setFilteredCards] = useState([])
   const [randomCards, setRandomCards] = useState([])
   const [decks, setDecks] = useDecksState()
-  const [modalState, setModalState] = useState(0)
-  const [selectedOption, setSelectedOption] = useState('------')
+  const [studySide, setStudySide] = useState('')
   const [multipleChoices, setMultipleChoices] = useState([])
   const [choice, setChoice] = useState('')
   const [score, setScore] = useState(0)
   const [wrong, setWrong] = useState(false)
-  const [userInput, setUserInput] = useState('')
+  const [studyAmount, setStudyAmount] = useState('')
   const [total, setTotal] = useState(0)
-  const [deckAmountMessage, setDeckAmountMessage] = useState('')
-  const [deckChoiceMessage, setDeckChoiceMessage] = useState('')
+  const [selectedDeck, setSelecedDeck] = useState('-----')
 
   useEffect(() => {
     const storedCards = localStorage.getItem('cards');
@@ -34,7 +34,28 @@ export const MultipleChoice = () => {
   }, [])
 
   const handleSelect = (deck) => {
-    setFilteredCards(cards.filter((card) => card.deck === deck))
+    if (cards.filter((card) => card.deck === deck).length >= 5) {
+      setFilteredCards(cards.filter((card) => card.deck === deck))
+    } else {
+      console.log('deck choice is invalid')
+    }
+  }
+
+  const submissionSchema = yup.object().shape({
+    studyAmount: yup
+      .number('Enter a valid amount of cards (>0, and a number)')
+      .required("Enter a valid amount of cards (>0, and a number)")
+      .typeError('Enter a valid amount of cards (>0, and a number)')
+      .min(1, 'Enter a valid amount of cards (>0, and a number)')
+      .max(filteredCards.length, 'You can not study an amount greater than the cards present in the deck')
+  })
+
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: yupResolver(submissionSchema)
+  })
+
+  const handleInputChange = (event) => {
+    setStudyAmount(event.target.value)
   }
 
   const handleMultipleChoice = (answer) => {
@@ -48,11 +69,11 @@ export const MultipleChoice = () => {
     setMultipleChoices(mcArray)
   }
 
-  const onSubmit = () => {
+  const onSubmit = (info) => {
     const smallerArray = []
 
-    if (userInput-1 < filteredCards.length && userInput > 0) {
-      while (smallerArray.length < userInput) {
+    if (info.studyAmount - 1 < filteredCards.length && info.studyAmount > 0) {
+      while (smallerArray.length < info.studyAmount) {
         const randomIndex = Math.floor(Math.random() * filteredCards.length)
         if (!smallerArray.includes(filteredCards[randomIndex])) {
           smallerArray.push(filteredCards[randomIndex])
@@ -61,16 +82,12 @@ export const MultipleChoice = () => {
       setRandomCards(smallerArray)
       setTotal(smallerArray.length)
       handleMultipleChoice(smallerArray[0])
-      setModalState(2)
-    } else if (userInput == 0 || isNaN(userInput)) {
-      setDeckAmountMessage('Enter a valid amount of cards (>0, and a number)')
-    } else {
-      setDeckAmountMessage('You can not study an amount greater than the cards present in the deck')
+      setStudySide(2)
     }
   }
 
   const checkAnswer = () => {
-    if (modalState == 4) {
+    if (studySide == 'back') {
       if (randomCards[0].back == choice && wrong == false) {
         handleMultipleChoice(randomCards[1])
         setRandomCards(randomCards.filter((card) => card.back !== choice))
@@ -82,7 +99,7 @@ export const MultipleChoice = () => {
         setRandomCards(randomCards.filter((card) => card.back !== choice))
         setWrong(false)
       }
-    } else if (modalState == 3) {
+    } else if (studySide == 'front') {
       if (randomCards[0].front == choice && wrong == false) {
         handleMultipleChoice(randomCards[1])
         setRandomCards(randomCards.filter((card) => card.front !== choice))
@@ -97,19 +114,75 @@ export const MultipleChoice = () => {
     }
   }
 
+  const handleFinishStudy = () => {
+    setStudySide(0)
+    setRandomCards([])
+    setFilteredCards([])
+    setMultipleChoices([])
+    setScore(0)
+    setTotal(0)
+    setStudyAmount('')
+    setSelecedDeck('-----')
+  }
+
   return (
     <div>
-      {modalState == 0 && (
+      {(studySide == 'back' && randomCards.length > 0) && ( // Back = multiple choices
+        <div className="modalBackground">
+          <div className="modalContainer">
+            <h2>Select the right option which corresponds to the opposite side of the card</h2>
+            {randomCards.length > 0 && (<div>
+              {randomCards[0].front}
+              <div>
+                {multipleChoices.map((choice) => {
+                  return (<button onClick={() => {
+                    setChoice(choice.back)
+                  }}>{choice.back}</button>)
+                })}
+              </div>
+              <button onClick={checkAnswer}>Check Answer</button>
+              <h2>Cards Remaining: {randomCards.length}</h2>
+              <h2>Score: {score} </h2>
+              <button onClick={handleFinishStudy}>Finish studying</button>
+            </div>)}
+          </div>
+        </div>
+      )}
+
+      {(studySide == 'front' && randomCards.length > 0) && ( // Front = Multiple choices
+        <div className="modalBackground">
+          <div className="modalContainer">
+            <h2>Select the right option which corresponds to the opposite side of the card</h2>
+            {randomCards.length > 0 && (<div>
+              {randomCards[0].back}
+              <div>
+                {multipleChoices.map((choice) => {
+                  return (<button onClick={() => {
+                    setChoice(choice.front)
+                  }}>{choice.front}</button>)
+                })}
+              </div>
+              <button onClick={checkAnswer}>Check Answer</button>
+              <h2>Cards Remaining: {randomCards.length}</h2>
+              <h2>Score: {score} </h2>
+              <button onClick={handleFinishStudy}>Finish studying</button>
+            </div>)}
+          </div>
+        </div>
+      )}
+
+      <div class='study-options'>
         <div class='select-deck'>
           <h2></h2>
           <h2>Select the deck you would like to study from</h2>
           <header>Guide: Of the five options, choose the correct one. Options are taken from the deck <br /> so a minimum of 5 cards is required</header>
           <h2></h2>
           <select onChange={(event) => {
+            setSelecedDeck(event.target.value)
             handleSelect(event.target.value)
-            setSelectedOption(event.target.value)
-            setDeckChoiceMessage('')
-          }}>
+            setRandomCards([])
+            setStudyAmount('')
+          }} value={selectedDeck}>
             <option>------</option>
             <option>Uncategorized</option>
             {decks.map((deck) => {
@@ -120,98 +193,25 @@ export const MultipleChoice = () => {
               )
             })}
           </select>
-          <button onClick={() => {
-            if (filteredCards.length > 5) {
-              setModalState(1)
-            } else {
-              setDeckChoiceMessage('This deck does not contain enough cards')
-            }
-          }}>Confirm</button>
-          <h2>{deckChoiceMessage}</h2>
         </div>
-      )}
 
-      {modalState == 1 && (
         <div class='input-amount'>
           <h2>Enter the amount of cards you would like to study below</h2>
-          <div>
-            <input onChange={(event) => {
-              setUserInput(event.target.value)
-            }} value={userInput} />
-            <button onClick={onSubmit}>Submit</button>
-            <h2>{deckAmountMessage}</h2>
-          </div>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <input {...register('studyAmount')} placeholder="Enter study session amount..." style={{ width: '200px' }} onChange={handleInputChange} value={studyAmount} />
+            <input type='submit' />
+            <p>{errors.studyAmount?.message}</p>
+          </form>
         </div>
-      )}
 
-      {modalState == 2 && (
-        <div>
+        <div className="side-select">
           <h2></h2>
-          <h2>Select the side you want to be the choices</h2>
-          <button onClick={() => { setModalState(3) }}>Front</button><button onClick={() => { setModalState(4) }}>Back</button>
+          <h2>Currently registered cards: {randomCards.length} <br />
+            Select the side you want to be the choices</h2>
+          <button onClick={() => { setStudySide('front') }}>Front</button>
+          <button onClick={() => { setStudySide('back') }}>Back</button>
         </div>
-      )
-      }
-
-      {(modalState == 3 && randomCards.length > 0) && ( // Front = Multiple choices
-        <div>
-          <h2>Select the right option which corresponds to the opposite side of the card</h2>
-          {randomCards.length > 0 && (<div>
-            {randomCards[0].back}
-            <div>
-              {multipleChoices.map((choice) => {
-                return (<button onClick={() => {
-                  setChoice(choice.front)
-                }}>{choice.front}</button>)
-              })}
-            </div>
-            <button onClick={checkAnswer}>Check Answer</button>
-            <h2>Cards Remaining: {randomCards.length}</h2>
-            <h2>Score: {score}</h2>
-          </div>)}
-
-          {(randomCards.length == 0 && modalState !== 0 && modalState !== 1) && (
-            <div class='results-page'>
-              <h2>These are your results</h2>
-              <button onClick={() => {
-                setModalState(0)
-                setUserInput('')
-                setScore(0)
-              }}>Return</button>
-            </div>
-          )}
-        </div>
-      )}
-
-
-      {(modalState == 4 && randomCards.length > 0) && ( // Back = multiple choices
-        <div>
-          <h2>Select the right option which corresponds to the opposite side of the card</h2>
-          {randomCards.length > 0 && (<div>
-            {randomCards[0].front}
-            <div>
-              {multipleChoices.map((choice) => {
-                return (<button onClick={() => {
-                  setChoice(choice.back)
-                }}>{choice.back}</button>)
-              })}
-            </div>
-            <button onClick={checkAnswer}>Check Answer</button>
-            <h2>Cards Remaining: {randomCards.length}</h2>
-            <h2>Score: {score}</h2>
-          </div>)}
-        </div>
-      )}
-      {(randomCards.length == 0 && modalState !== 0 && modalState !== 1) && (
-        <div class='results-page'>
-          <h2>You scored {score} / {total}</h2>
-          <button onClick={() => {
-            setModalState(0)
-            setUserInput('')
-            setScore(0)
-          }}>Return</button>
-        </div>
-      )}
+      </div>
       <h2></h2>
       <div class='divider'>a</div>
     </div>

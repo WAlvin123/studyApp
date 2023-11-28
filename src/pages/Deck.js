@@ -64,52 +64,39 @@ export const Deck = () => {
     <div>
       <h2></h2>
       <h2>Create and view decks here</h2>
-      <button onClick={() => {
-        setIsCreateDeckVisible(!isCreateDeckVisible)
-        setIsViewAllDecksVisible(false)
-      }}>Create Deck</button>
+      <div>
+        <h3>Enter the name of the deck you want to create below</h3>
+        <input onChange={(event) => {
+          setUserInput(event.target.value)
+          setDeckName(event.target.value)
+        }} value={userInput} />
+        <button onClick={
+          createDeck
+        }>Create</button>
+      </div>
 
-      <button onClick={() => {
-        setIsViewAllDecksVisible(!isViewAllDecksVisible)
-        setIsCreateDeckVisible(false)
-      }}>View Decks</button>
-
-      {isCreateDeckVisible && (
-        <div>
-          <h3>Enter the name of the deck you want to create below</h3>
-          <input onChange={(event) => { 
-            setUserInput(event.target.value)
-            setDeckName(event.target.value)
-            }} value={userInput}/>
-          <button onClick={
-            createDeck
-            }>Create</button>
-        </div>
-      )
-      }
-
-      {isViewAllDecksVisible && (
-        <div style ={{display: 'flex', justifyContent:"center", paddingTop:'20px'}}>
-        <table style={{backgroundColor:'black'}}>
-          <th style={{width: '150px', backgroundColor:'black', color:'white'}}>Name</th>
-          <th style={{width: '150px', backgroundColor:'black', color:'white'}}> Amount of cards</th>
+      <h2>Current Decks</h2>
+      <div style={{ display: 'flex', justifyContent: "center", paddingTop: '20px' }}>
+        <table style={{ backgroundColor: 'black' }}>
+          <th style={{ width: '150px', backgroundColor: 'black', color: 'white' }}>Name</th>
+          <th style={{ width: '150px', backgroundColor: 'black', color: 'white' }}> Amount of cards</th>
           {decks.map((deck) => {
             return (
-              <tr style={{backgroundColor:'white'}}>
+              <tr style={{ backgroundColor: 'white' }}>
                 <td>{deck.name}</td>
                 <td>{getDeckAmount(deck.name)}</td>
                 <button onClick={() => {
                   removeDeck(deck.id)
                   removeCardsFromDeck(deck.name)
-                }} style={{backgroundColor:'black', color:'white'}}>Remove Deck</button>  
+                }} style={{ backgroundColor: 'black', color: 'white' }}>Remove Deck</button>
               </tr>
 
             )
           })
           }
         </table>
-        </div>
-      )}
+      </div>
+
       <h1></h1>
       <div class='divider'>a</div>
       <h2>Total Cards: {cards.length}</h2>

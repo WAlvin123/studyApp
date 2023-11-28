@@ -2,12 +2,6 @@
   text-align: center;
 }
 
-.card-container {
-  padding-top: 80px;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-}
-
 .navbar {
   display: grid;
   grid-template-columns: 80px 80px 80px 160px 185px 200px; 

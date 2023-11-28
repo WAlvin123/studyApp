@@ -100,93 +100,72 @@ export const Cards = () => {
   return (
     <div>
       <h2>Create and view cards here</h2>
-
-      <button onClick={() => {
-        setIsRegisterVisible(!isRegisterVisible)
-        setIsDeckOptionsVisible(false)
-        setfrontInput('')
-        setBackInput('')
-        setDeckSelection('Uncategorized')
-      }}>Create Card</button>
-
-      <button onClick={() => {
-        setIsDeckOptionsVisible(!isDeckOptionsVisible)
-        setIsItemsVisible(false)
-        setIsRegisterVisible(false)
-        setfrontInput('')
-        setBackInput('')
-        setDeckSelection('Uncategorized')
-      }}>View Cards</button>
-
-      {isRegisterVisible && (
-        <div className='modal'>
-          <div>
-            <h3>Enter the front and back fields of your Card below</h3>
-            <div>
-              <input value={frontInput} onChange={(event) => {
-                setfrontInput(event.target.value)
-              }} />
-              <input value={backInput} onChange={(event) => {
-                setBackInput(event.target.value)
-              }} />
-              <select id="dropdown" onChange={
-                (event) => { setDeckSelection(event.target.value) }
-              }>
-                <option>Uncategorized</option>
-                {decks.map((deck) => {
-                  return (
-                    <option>{deck.name}</option>
-                  )
-                })}
-              </select>
-              <button onClick={onSubmit}>Submit</button>
-            </div>
-            <p>{errors.front?.message}</p>
-            <p>{errors.back?.message}</p>
-          </div>
-        </div>)}
-
-      {isDeckOptionsVisible && (
+      <div className='modal'>
         <div>
-          <select onChange={(event) => {
-            if (event.target.value !== '---------') {
-              onDeckSelect(event.target.value)
-              setIsItemsVisible(true)
-            } else { setIsItemsVisible(false) }
-          }}>
-            <option>---------</option>
-            <option>View all</option>
-            {decks.map((deck) => {
-              return (
-                <option>{deck.name}</option>
-              )
-            })}
-          </select>
-
-          {isItemsVisible && (
-            <div style={{display: 'flex', justifyContent: 'center', paddingTop:'10px'}}>
-              <table style={{backgroundColor: 'black'}}>
-                <th style={{ width: '200px', color:'white' }}>Front</th>
-                <th style={{ width: '200px', color:'white'  }}>Back</th>
-                <th style={{ width: '200px', color:'white'  }}>Deck</th>
-                {filteredCards.map((card) => {
-                  return (
-                    <tr style={{backgroundColor:'white'}}>
-                      <td>{card.front}</td>
-                      <td>{card.back}</td>
-                      <td>{card.deck}</td>
-                      <button onClick={() => {removeItem(card.id)}} style={{ backgroundColor: 'black', color:'white'}}>Remove card</button>
-                    </tr>
-                  )
-                })}
-              </table>
-            </div>
-          )
-          }
-
+          <h3>Enter the front and back fields of your Card below</h3>
+          <div>
+            <input value={frontInput} onChange={(event) => {
+              setfrontInput(event.target.value)
+            }} />
+            <input value={backInput} onChange={(event) => {
+              setBackInput(event.target.value)
+            }} />
+            <select id="dropdown" onChange={
+              (event) => { setDeckSelection(event.target.value) }
+            }>
+              <option>Uncategorized</option>
+              {decks.map((deck) => {
+                return (
+                  <option>{deck.name}</option>
+                )
+              })}
+            </select>
+            <button onClick={onSubmit}>Submit</button>
+          </div>
+          <p>{errors.front?.message}</p>
+          <p>{errors.back?.message}</p>
         </div>
-      )
-      }
+      </div>
+
+      <div>
+        <h2>Select the deck you want to view below</h2>
+        <select onChange={(event) => {
+          if (event.target.value !== '---------') {
+            onDeckSelect(event.target.value)
+            setIsItemsVisible(true)
+          } else { setIsItemsVisible(false) }
+        }}>
+          <option>---------</option>
+          <option>View all</option>
+          {decks.map((deck) => {
+            return (
+              <option>{deck.name}</option>
+            )
+          })}
+        </select>
+
+        {isItemsVisible && (
+          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '10px' }}>
+            <table style={{ backgroundColor: 'black' }}>
+              <th style={{ width: '200px', color: 'white' }}>Front</th>
+              <th style={{ width: '200px', color: 'white' }}>Back</th>
+              <th style={{ width: '200px', color: 'white' }}>Deck</th>
+              {filteredCards.map((card) => {
+                return (
+                  <tr style={{ backgroundColor: 'white' }}>
+                    <td>{card.front}</td>
+                    <td>{card.back}</td>
+                    <td>{card.deck}</td>
+                    <button onClick={() => { removeItem(card.id) }} style={{ backgroundColor: 'black', color: 'white' }}>Remove card</button>
+                  </tr>
+                )
+              })}
+            </table>
+          </div>
+        )
+        }
+
+      </div>
 
       <h1></h1>
       <h3>{inputInvalid}</h3>
