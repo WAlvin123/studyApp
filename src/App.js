@@ -15,7 +15,7 @@ import { Home } from './pages/Home';
 function App() {
 
   return (
-    <div className="App">
+    <div className="App" style={{backgroundColor:'white'}}>
       <h1>
         REACT STUDY APP
       </h1>

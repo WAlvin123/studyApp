@@ -20,7 +20,7 @@ export const Matching = () => {
   const [score, setScore] = useState(0)
   const [totalScore, setTotalScore] = useState(0)
   const [userInput, setUserInput] = useState('')
-  const [studyAmount, setStudyAmount] = useState(0)
+  const [deckAmountMessage, setDeckAmountMessage] = useState('')
 
   useEffect(() => {
     const storedCards = localStorage.getItem('cards');
@@ -36,12 +36,11 @@ export const Matching = () => {
     }
   }, [])
 
-  const onSubmit = (amount) => {
-    const studyAmount = amount - 1
+  const onSubmit = () => {
     const smallerArray = []
 
-    if (studyAmount < filteredCards.length) {
-      while (smallerArray.length <= studyAmount) {
+    if (userInput - 1 < filteredCards.length && userInput > 0) {
+      while (smallerArray.length < userInput) {
         const randomIndex = Math.floor(Math.random() * filteredCards.length)
         if (!smallerArray.includes(filteredCards[randomIndex])) {
           smallerArray.push(filteredCards[randomIndex])
@@ -49,6 +48,10 @@ export const Matching = () => {
       }
       setScore(0)
       setModalState(2)
+    } else if (userInput == 0) {
+      setDeckAmountMessage('Enter a valid amount of cards (>0, and a number)')
+    } else {
+      setDeckAmountMessage('You can not study an amount greater than the cards present in the deck')
     }
 
     setFirstColumn([...smallerArray].map((item) => {
@@ -185,9 +188,9 @@ GPT provided code for a switch statement to make my above code more precise and 
           <div>
             <input placeholder="Enter study session amount..." style={{ width: '200px' }} value={userInput} onChange={(event) => {
               setUserInput(event.target.value)
-              setStudyAmount(event.target.value)
             }} />
-            <button onClick={() => { onSubmit(studyAmount) }}>Submit</button>
+            <button onClick={onSubmit}>Submit</button>
+            <h2>{deckAmountMessage}</h2>
           </div>
         </div>)
       }
@@ -198,33 +201,44 @@ GPT provided code for a switch statement to make my above code more precise and 
             <div>
               {firstColumn.map((items) => {
                 return (
-                  <div class='card'>
-                    <button onClick={() => {
-                      handleChoice(items, items.column)
-                    }}
-                    >{items.front}</button> {items.selected1 && <text>✓</text>}
+                  <div class='card' style={{display:'flex', justifyContent:'right'}}>
+                    <button onClick={()=>{handleChoice(items, items.column)}}
+                    style={{width:'120px', height:'25px'}}>{items.front}</button> 
                   </div>
                 )
               })}
             </div>
             <div>
-              {firstColumn.length > 0 && (<h2>{answerMessage}</h2>)}
 
 
-              {firstColumn.length > 0 && (<div class='answer-box'>
-                <h2>{choiceOne.front}</h2>
-                <h2>{choiceTwo.back}</h2>
-                <h2>Score: {score}</h2>
-                <button onClick={handleCheckAnswer}>Check Answer</button>
-              </div>)}
+              {firstColumn.length > 0 && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: "center" }}>
+                    <table style={{ backgroundColor: "black", color: 'white' }}>
+                      <th width='200px'>Front</th>
+                      <th width='200px'>Back</th>
+                      <tr style={{ backgroundColor: 'white' }}>
+                        <td style={{ color: "black" }}>{choiceOne.front}</td>
+                        <td style={{ color: "black" }}>{choiceTwo.back}</td>
+                      </tr>
+                    </table>
+                  </div>
+                  <div>
+                    {firstColumn.length > 0 && (<h2>{answerMessage}</h2>)}
+                    <h2>Score: {score}</h2>
+                    <button onClick={handleCheckAnswer}>Check Answer</button>
+                  </div>
+                </div>)}
+
+
             </div>
             <div>
               {secondColumn.map((items) => {
                 return (
-                  <div class='card'>
-                    <button onClick={() => {
-                      handleChoice(items, items.column)
-                    }}>{items.back}</button> {items.selected2 && <text>✓</text>}
+                  <div class='card' style={{width:'120px', height:'25px', display:'flex', alignItems:'stretch'}}>
+                    <button onClick={() => {handleChoice(items, items.column)}}
+                    style={{flex: '1 1 auto'}}
+                    >{items.back}</button> 
                   </div>
                 )
               })}

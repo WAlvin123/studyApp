@@ -1,9 +1,6 @@
 import { useDecksState } from "../components/useDecksState";
 import { useCardsState } from "../components/useCardsState";
 import { useState, useEffect } from "react";
-import * as yup from 'yup'
-import { yupResolver } from '@hookform/resolvers/yup'
-import { useForm } from "react-hook-form";
 
 // TODO: Let the user choose if they want to study front or back (Similar to short answer)
 
@@ -20,8 +17,9 @@ export const MultipleChoice = () => {
   const [score, setScore] = useState(0)
   const [wrong, setWrong] = useState(false)
   const [userInput, setUserInput] = useState('')
-  const [studyAmount, setStudyAmount] = useState(0)
   const [total, setTotal] = useState(0)
+  const [deckAmountMessage, setDeckAmountMessage] = useState('')
+  const [deckChoiceMessage, setDeckChoiceMessage] = useState('')
 
   useEffect(() => {
     const storedCards = localStorage.getItem('cards');
@@ -50,12 +48,11 @@ export const MultipleChoice = () => {
     setMultipleChoices(mcArray)
   }
 
-  const onSubmit = (number) => {
-    const studyAmount = number - 1
+  const onSubmit = () => {
     const smallerArray = []
 
-    if (studyAmount < filteredCards.length && filteredCards.length >= 5) {
-      while (smallerArray.length <= studyAmount) {
+    if (userInput-1 < filteredCards.length && userInput > 0) {
+      while (smallerArray.length < userInput) {
         const randomIndex = Math.floor(Math.random() * filteredCards.length)
         if (!smallerArray.includes(filteredCards[randomIndex])) {
           smallerArray.push(filteredCards[randomIndex])
@@ -65,9 +62,10 @@ export const MultipleChoice = () => {
       setTotal(smallerArray.length)
       handleMultipleChoice(smallerArray[0])
       setModalState(2)
-    }
-    else {
-      console.log('Not enough cards')
+    } else if (userInput == 0 || isNaN(userInput)) {
+      setDeckAmountMessage('Enter a valid amount of cards (>0, and a number)')
+    } else {
+      setDeckAmountMessage('You can not study an amount greater than the cards present in the deck')
     }
   }
 
@@ -110,6 +108,7 @@ export const MultipleChoice = () => {
           <select onChange={(event) => {
             handleSelect(event.target.value)
             setSelectedOption(event.target.value)
+            setDeckChoiceMessage('')
           }}>
             <option>------</option>
             <option>Uncategorized</option>
@@ -122,25 +121,25 @@ export const MultipleChoice = () => {
             })}
           </select>
           <button onClick={() => {
-            if (selectedOption !== '------') {
+            if (filteredCards.length > 5) {
               setModalState(1)
+            } else {
+              setDeckChoiceMessage('This deck does not contain enough cards')
             }
           }}>Confirm</button>
+          <h2>{deckChoiceMessage}</h2>
         </div>
       )}
 
       {modalState == 1 && (
         <div class='input-amount'>
           <h2>Enter the amount of cards you would like to study below</h2>
-          <h2> </h2>
           <div>
             <input onChange={(event) => {
               setUserInput(event.target.value)
-              setStudyAmount(event.target.value)
             }} value={userInput} />
-            <button onClick={() => {
-              if (studyAmount !== '') { onSubmit(studyAmount) }
-            }}>Submit</button>
+            <button onClick={onSubmit}>Submit</button>
+            <h2>{deckAmountMessage}</h2>
           </div>
         </div>
       )}
