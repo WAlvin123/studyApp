@@ -71,8 +71,9 @@ export const MultipleChoice = () => {
 
   const onSubmit = (info) => {
     const smallerArray = []
-
-    if (info.studyAmount - 1 < filteredCards.length && info.studyAmount > 0) {
+    if (studyAmount === '') {
+      return; // If input value is empty, return without submitting
+    } else if (info.studyAmount - 1 < filteredCards.length && info.studyAmount > 0) {
       while (smallerArray.length < info.studyAmount) {
         const randomIndex = Math.floor(Math.random() * filteredCards.length)
         if (!smallerArray.includes(filteredCards[randomIndex])) {
@@ -207,7 +208,7 @@ export const MultipleChoice = () => {
         <div className="side-select">
           <h2></h2>
           <h2>Currently registered cards: {randomCards.length} <br />
-            Select the side you want to be the choices</h2>
+            Select the side you want to study</h2>
           <button onClick={() => { setStudySide('front') }}>Front</button>
           <button onClick={() => { setStudySide('back') }}>Back</button>
         </div>

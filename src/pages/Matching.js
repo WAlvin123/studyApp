@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { useCardsState } from "../components/useCardsState";
 import { useDecksState } from "../components/useDecksState";
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { useForm } from 'react-hook-form';
+
 
 // TODO: Make second button not append endlessly
 
 export const Matching = () => {
-
   const [cards, setCards] = useCardsState()
   const [decks, setDecks] = useDecksState()
   const [filteredCards, setFilteredCards] = useState([])
@@ -19,8 +22,7 @@ export const Matching = () => {
   const [wrong, setWrong] = useState(false)
   const [score, setScore] = useState(0)
   const [totalScore, setTotalScore] = useState(0)
-  const [userInput, setUserInput] = useState('')
-  const [deckAmountMessage, setDeckAmountMessage] = useState('')
+  const [studyAmount, setStudyAmount] = useState('')
 
   useEffect(() => {
     const storedCards = localStorage.getItem('cards');
@@ -36,22 +38,36 @@ export const Matching = () => {
     }
   }, [])
 
-  const onSubmit = () => {
-    const smallerArray = []
+  const submissionSchema = yup.object().shape({
+    studyAmount: yup
+      .number('Enter a valid amount of cards (>0, and a number)')
+      .required("Enter a valid amount of cards (>0, and a number)")
+      .typeError('Enter a valid amount of cards (>0, and a number)')
+      .min(1, 'Enter a valid amount of cards (>0, and a number)')
+      .max(filteredCards.length, 'You can not study an amount greater than the cards present in the deck')
+  })
 
-    if (userInput - 1 < filteredCards.length && userInput > 0) {
-      while (smallerArray.length < userInput) {
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: yupResolver(submissionSchema)
+  })
+
+  const handleInputChange = (event) => {
+    setStudyAmount(event.target.value)
+  }
+
+  const onSubmit = (info) => {
+    const smallerArray = []
+    if (studyAmount === '') {
+      return; // If input value is empty, return without submitting
+    } else if (info.studyAmount - 1 < filteredCards.length) {
+      while (smallerArray.length < info.studyAmount) {
         const randomIndex = Math.floor(Math.random() * filteredCards.length)
         if (!smallerArray.includes(filteredCards[randomIndex])) {
           smallerArray.push(filteredCards[randomIndex])
         }
       }
       setScore(0)
-      setModalState(2)
-    } else if (userInput == 0) {
-      setDeckAmountMessage('Enter a valid amount of cards (>0, and a number)')
-    } else {
-      setDeckAmountMessage('You can not study an amount greater than the cards present in the deck')
+      setStudyAmount('')
     }
 
     setFirstColumn([...smallerArray].map((item) => {
@@ -98,34 +114,6 @@ export const Matching = () => {
     }
   }
 
-  /* const handleChoice = (card, column) => {
-  switch (column) {
-    case 1:
-      if (choiceOne === '') {
-        setChoiceOne(card);
-      } else if (choiceTwo === '') {
-        setChoiceTwo(card);
-      } else {
-        setChoiceOne(card);
-      }
-      break;
-    case 2:
-      if (choiceTwo === '') {
-        setChoiceTwo(card);
-      } else if (choiceOne === '') {
-        setChoiceOne(card);
-      } else {
-        setChoiceTwo(card);
-      }
-      break;
-    default:
-      break;
-  }
-}; 
-
-GPT provided code for a switch statement to make my above code more precise and readable. Study and understand the purpose of switch statments and breaks, and then implement. 
-*/
-
   const handleCheckAnswer = () => {
     if (choiceOne.id == choiceTwo.id && choiceOne !== '' && choiceTwo !== '') {
       setFirstColumn(firstColumn.filter((item) => item.id !== choiceOne.id))
@@ -154,99 +142,105 @@ GPT provided code for a switch statement to make my above code more precise and 
     }
   }
 
+  const handleFinish = () => {
+    setScore(0)
+    setTotalScore(0)
+    setStudyAmount('')
+    setSelectedOption('------')
+    setModalState(false)
+    setAnswerMessage('')
+    setFirstColumn([])
+    setSecondColumn([])
+  }
+
   // RENDERED PAGE BELOW
   return (
     <div>
-      {modalState == 0 && (
-        <div class='select-deck'>
-          <h2>Select the deck you would like to study from</h2>
-          <header>Guide: Match the front of the card with the back</header>
-          <h2></h2>
-          <select onChange={(event) => {
-            onDeckSelect(event.target.value)
-            setSelectedOption(event.target.value)
-          }}>
-            <option>------</option>
-            <option>Uncategorized</option>
-            {decks.map((deck) => { return <option>{deck.name}</option> })}
-          </select>
-          <button onClick={() => {
-            if (selectedOption !== '------') {
-              setModalState(1)
-              setUserInput('')
-            }
-          }}>Confirm</button>
-        </div>
-      )
-
-      }
-
-      {modalState == 1 && (
-        <div class='input-amount'>
-          <h2>Enter the amount of cards you would like to study below</h2>
-          <h2> </h2>
-          <div>
-            <input placeholder="Enter study session amount..." style={{ width: '200px' }} value={userInput} onChange={(event) => {
-              setUserInput(event.target.value)
-            }} />
-            <button onClick={onSubmit}>Submit</button>
-            <h2>{deckAmountMessage}</h2>
-          </div>
-        </div>)
-      }
-
-      {modalState == 2 && (
-        <div class='study-page'>
-          <div class='card-container'>
-            <div>
-              {firstColumn.map((items) => {
-                return (
-                  <div class='card' style={{display:'flex', justifyContent:'right'}}>
-                    <button onClick={()=>{handleChoice(items, items.column)}}
-                    style={{width:'120px', height:'25px'}}>{items.front}</button> 
-                  </div>
-                )
-              })}
-            </div>
-            <div>
-
-
-              {firstColumn.length > 0 && (
+      {(modalState == true && firstColumn.length > 0) && (
+        <div class='modalBackground'>
+          <div class='modalContainer'>
+            {firstColumn.length > 0 && (
+              <div className="answer-checker">
                 <div>
-                  <div style={{ display: 'flex', justifyContent: "center" }}>
-                    <table style={{ backgroundColor: "black", color: 'white' }}>
-                      <th width='200px'>Front</th>
-                      <th width='200px'>Back</th>
-                      <tr style={{ backgroundColor: 'white' }}>
-                        <td style={{ color: "black" }}>{choiceOne.front}</td>
-                        <td style={{ color: "black" }}>{choiceTwo.back}</td>
-                      </tr>
-                    </table>
-                  </div>
-                  <div>
-                    {firstColumn.length > 0 && (<h2>{answerMessage}</h2>)}
-                    <h2>Score: {score}</h2>
-                    <button onClick={handleCheckAnswer}>Check Answer</button>
-                  </div>
-                </div>)}
-
-
+                  {firstColumn.length > 0 && (<h2>{answerMessage}</h2>)}
+                  <h2>Score: {score}</h2>
+                </div>
+                <div style={{ display: 'flex', justifyContent: "center" }}>
+                  <table style={{ backgroundColor: "black", color: 'white' }}>
+                    <th width='200px'>Front</th>
+                    <th width='200px'>Back</th>
+                    <tr style={{ backgroundColor: 'white' }}>
+                      <td style={{ color: "black" }}>{choiceOne.front}</td>
+                      <td style={{ color: "black" }}>{choiceTwo.back}</td>
+                    </tr>
+                  </table>
+                </div>
+                <button onClick={handleCheckAnswer}>Check Answer</button>
+              </div>)}
+            <div class='column-container'>
+              <div class='left-column'>
+                {firstColumn.map((items) => {
+                  return (
+                    <div>
+                      <button onClick={() => { handleChoice(items, items.column) }}
+                        style={{
+                          backgroundColor: 'transparent',
+                          border: 'none',
+                          cursor: 'pointer'
+                        }}>{items.front}</button>
+                    </div>
+                  )
+                })}
+              </div>
+              <div class='right-column'>
+                {secondColumn.map((items) => {
+                  return (
+                    <div>
+                      <button onClick={() => { handleChoice(items, items.column) }}
+                        style={{
+                          backgroundColor: 'transparent',
+                          border: 'none',
+                          cursor: 'pointer'
+                        }}
+                      >{items.back}</button>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-            <div>
-              {secondColumn.map((items) => {
-                return (
-                  <div class='card' style={{width:'120px', height:'25px', display:'flex', alignItems:'stretch'}}>
-                    <button onClick={() => {handleChoice(items, items.column)}}
-                    style={{flex: '1 1 auto'}}
-                    >{items.back}</button> 
-                  </div>
-                )
-              })}
-            </div>
+            <button onClick={handleFinish} style={{ backgroundColor: "transparent", border: 'none', cursor: "pointer" }}>Finish studying</button>
           </div>
+        </div>
+      )}
 
+      <div class='select-deck'>
+        <h2>Select the deck you would like to study from</h2>
+        <header>Guide: Match the front of the card with the back</header>
+        <h2></h2>
+        <select onChange={(event) => {
+          onDeckSelect(event.target.value)
+          setSelectedOption(event.target.value)
+        }} value={selectedOption}>
+          <option>------</option>
+          <option>Uncategorized</option>
+          {decks.map((deck) => { return <option>{deck.name}</option> })}
+        </select>
+      </div>
 
-          {firstColumn.length == 0 && (
+      <div class='input-amount'>
+        <h2>Enter the amount of cards you would like to study below</h2>
+        <h2> </h2>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <input {...register('studyAmount')} placeholder="Enter study session amount..." style={{ width: '200px' }} onChange={handleInputChange} value={studyAmount} />
+          <input type='submit' />
+          <p>{errors.studyAmount?.message}</p>
+        </form>
+      </div>
+      <h2>Currently registered  cards: {firstColumn.length}</h2>
+      <button onClick={() => { setModalState(true) }}>Confirm options</button>
+      <h2></h2>
+
+      {/*firstColumn.length == 0 && (
             <div>
               <h2>Results</h2>
               <h2>You scored {score} / {totalScore}</h2>
@@ -255,11 +249,8 @@ GPT provided code for a switch statement to make my above code more precise and 
                 setAnswerMessage('')
               }}>Return</button>
             </div>
-          )}
-        </div>
-      )
-      }
-      <h2></h2>
+            )*/}
+
       <div class='divider'>a</div>
     </div>
   )

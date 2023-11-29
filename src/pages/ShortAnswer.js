@@ -49,13 +49,18 @@ export const ShortAnswer = () => {
     resolver: yupResolver(submissionSchema)
   })
 
+  const handleInputChange = (event) => {
+    setStudyAmount(event.target.value)
+  }
+
   // Step 2: Make a random deck out of the filtered cards
   const onSubmit = (info) => {
     const randomArray = []
-    const studyAmount = info.studyAmount - 1
 
-    if (studyAmount < filteredCards.length) {
-      while (randomArray.length <= studyAmount) {
+    if (studyAmount === '') {
+      return; 
+    } else if (info.studyAmount - 1 < filteredCards.length) {
+      while (randomArray.length < info.studyAmount) {
         const randomIndex = Math.floor(Math.random() * filteredCards.length)
         if (!randomArray.includes(filteredCards[randomIndex])) {
           randomArray.push(filteredCards[randomIndex])
@@ -89,13 +94,15 @@ export const ShortAnswer = () => {
     }
   }
 
-  const handleInputChange = (event) => {
-    setStudyAmount(event.target.value)
+  const handleFinish = () => {
+    setStudySide('')
+    setRandomCards([])
+    setInputValue('')
+    setSelectedOption('------')
   }
 
   return (
     <div>
-
       {(studySide == 'front' && randomCards.length >= 1) && (
         <div className="modalBackground">
           <div className="modalContainer">
@@ -104,20 +111,16 @@ export const ShortAnswer = () => {
                 <h2> </h2>
                 <input placeholder="Enter answer..." value={inputValue} onChange={(event) => { setInputValue(event.target.value) }} />
                 <button onClick={() => {
-                   checkAnswer(inputValue) 
-                   setInputValue('')
-                   }}>SUBMIT</button>
+                  checkAnswer(inputValue)
+                  setInputValue('')
+                }}>SUBMIT</button>
                 <div>
                   <h2>{randomCards[0].front} <button onClick={() => { setShowAnswer(!showAnswer) }}>Show answer
                   </button></h2>
                   {showAnswer && <h2>{randomCards[0].back}</h2>}
                 </div>
                 <h2>Cards remaining: {randomCards.length} </h2>
-                <button onClick={() => {
-                  setStudySide('')
-                  setRandomCards([])
-                  setInputValue('')
-                }}>FINISH STUDYING</button>
+                <button onClick={handleFinish}>FINISH STUDYING</button>
               </div>
             )}
           </div>
@@ -130,21 +133,17 @@ export const ShortAnswer = () => {
             <div>
               <h2> </h2>
               <input placeholder="Enter answer..." value={inputValue} onChange={(event) => { setInputValue(event.target.value) }} />
-              <button onClick={() => { 
-                checkAnswer(inputValue) 
+              <button onClick={() => {
+                checkAnswer(inputValue)
                 setInputValue('')
-                }}>SUBMIT</button>
+              }}>SUBMIT</button>
               <div>
                 <h2>{randomCards[0].back} <button onClick={() => { setShowAnswer(!showAnswer) }}>Show answer
                 </button></h2>
                 {showAnswer && <h2>{randomCards[0].front}</h2>}
               </div>
               <h2>Cards remaining: {randomCards.length} </h2>
-              <button onClick={() => {
-                setStudySide('')
-                setRandomCards([])
-                setInputValue('')
-              }}>FINISH STUDYING</button>
+              <button onClick={handleFinish}>FINISH STUDYING</button>
             </div>
           </div>
         </div>
@@ -157,7 +156,7 @@ export const ShortAnswer = () => {
         <select onChange={(event) => {
           onDeckSelect(event.target.value)
           setSelectedOption(event.target.value)
-        }}>
+        }} value={selectedOption}>
           <option>-------</option>
           <option>Uncategorized</option>
           {decks.map((deck) => {
@@ -166,7 +165,6 @@ export const ShortAnswer = () => {
             )
           })}
         </select>
-        <button>Confirm</button>
 
         <h2>Enter the amount of cards you would like to study below</h2>
         <form onSubmit={handleSubmit(onSubmit)}>
